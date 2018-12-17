@@ -2,6 +2,7 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 
+
 class CentroidTracker():
     def __init__(self, maxDisappeared=50):
         self.nextObjectID = 0
@@ -18,6 +19,25 @@ class CentroidTracker():
     def deregister(self, objectID):
         del self.objects[objectID]
         del self.disappeared[objectID]
+
+    def get_id(self, rect):
+        (x, y, eX, eY) = rect
+        cX = ((x + eX) / 2.0)
+        cY = ((y + eY) / 2.0)
+
+        objectIDs = list(self.objects.keys())
+        objectCentroids = list(self.objects.values())
+        
+        D = dist.cdist(np.array(objectCentroids), [(cX, cY)])
+
+        rows = D.min(axis=1).argsort()
+        cols = D.argmin(axis=1)[rows]
+        objectID = None
+
+        for (row, col) in zip(rows, cols):
+            objectID = objectIDs[row]
+            break
+        return objectID
 
     def update(self, rects):
 
