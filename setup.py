@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
         name="centroid_tracker",
-        version="0.0.3",
+        version="0.0.9",
         author="Ross Leitch",
         author_email="ross@end-game.com",
         description="A small centroid tracker library based off https://www.pyimagesearch.com/2018/07/23/simple-object-tracking-with-opencv/",

@@ -7,16 +7,19 @@ class CentroidTracker():
     def __init__(self, maxDisappeared=50):
         self.nextObjectID = 0
         self.objects = OrderedDict()
+        self.originRects = OrderedDict()
         self.disappeared = OrderedDict()
 
         self.maxDisappeared = maxDisappeared
 
-    def register(self, centroid):
+    def register(self, centroid, rect):
+        self.originRects[self.nextObjectID] = rect
         self.objects[self.nextObjectID] = centroid
         self.disappeared[self.nextObjectID] = 0
         self.nextObjectID += 1
 
     def deregister(self, objectID):
+        del self.originRects[objectID]
         del self.objects[objectID]
         del self.disappeared[objectID]
 
@@ -42,12 +45,12 @@ class CentroidTracker():
     def update(self, rects):
 
         if(len(rects) == 0):
-            for objectID in self.disappeared.keys():
+            for objectID in list(self.disappeared.keys()):
                 self.disappeared[objectID] += 1
                 
                 if(self.disappeared[objectID] > self.maxDisappeared):
                     self.deregister(objectID)
-            return self.objects
+            return self.objects, self.originRects
         
         inputCentroids = np.zeros((len(rects), 2), dtype="int")
 
@@ -58,7 +61,9 @@ class CentroidTracker():
 
         if(len(self.objects) == 0):
             for i in range(0, len(inputCentroids)):
-                self.register(inputCentroids[i])
+                centroid = inputCentroids[i]
+                rect = rects[i]
+                self.register(centroid, rect)
         
         else:
             objectIDs = list(self.objects.keys())
@@ -79,6 +84,7 @@ class CentroidTracker():
 
                 objectID = objectIDs[row]
                 self.objects[objectID] = inputCentroids[col]
+                self.originRects[objectID] = rects[col]
                 self.disappeared[objectID] = 0
 
                 usedRows.add(row)
@@ -99,6 +105,8 @@ class CentroidTracker():
             else:
 
                 for col in unusedCols:
-                    self.register(inputCentroids[col])
+                    centroid = inputCentroids[col]
+                    rect = rects[col]
+                    self.register(centroid, rect)
 
-        return self.objects
+        return self.objects, self.originRects
